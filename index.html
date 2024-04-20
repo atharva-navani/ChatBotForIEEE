@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website with Chatbot</title>
+
+    <style>
+        /* Chatbot container styling */
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 350px; /* Increased width */
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 15px; /* Increased border radius */
+            padding: 20px; /* Increased padding */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            display: none;
+            overflow: hidden; /* Ensure the content doesn't overflow */
+            font-family: Arial, sans-serif; /* Use a more readable font */
+        }
+
+        /* Chat interface styling */
+        .chat-interface {
+            height: 300px; /* Limit the height of the chat interface */
+            overflow-y: auto; /* Allow scrolling if content exceeds height */
+        }
+
+        /* Message styling */
+        .message {
+            margin: 10px 0;
+            padding: 15px; /* Increased padding */
+            border-radius: 20px; /* Increased border radius */
+            max-width: 70%;
+            word-wrap: break-word; /* Allow long words to wrap */
+        }
+
+        .message.bot {
+            background-color: #007bff;
+            color: #fff;
+            float: left;
+        }
+
+        .message.user {
+            background-color: #0056b3;
+            color: #fff;
+            float: right;
+        }
+
+        /* Input field and button styling */
+        .input-container {
+            margin-top: 20px; /* Increased margin */
+            display: flex; /* Use flexbox for input and button alignment */
+        }
+
+        .input-container input[type="text"] {
+            flex: 1; /* Fill remaining space */
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px; /* Increased font size */
+            margin-right: 10px; /* Add space between input and button */
+        }
+
+        .input-container button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            font-size: 16px; /* Increased font size */
+        }
+
+        /* Chatbot button styling */
+        #openChatbotBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow */
+        }
+
+        /* Chatbot button hover effect */
+        #openChatbotBtn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to my Website</h1>
+
+    <!-- Chatbot button -->
+    <button id="openChatbotBtn">Chat</button>
+
+    <!-- Chatbot container -->
+    <div id="chatbot-container">
+        <div class="chat-interface" id="chatbotResponse">
+            <!-- Placeholder for chat messages -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="questionInput" placeholder="Type your message here">
+            <button id="submitQuestionBtn">Send</button>
+        </div>
+    </div>
+
+    <!-- Script to interact with the chatbot server -->
+    <script>
+        // Function to send a request to the chatbot server
+        async function invokeChatbot(inputData) {
+            try {
+                const response = await fetch('http://localhost:8000/chatbot/invoke', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(inputData),
+                });
+                const data = await response.json();
+                return data; // Return the entire response object
+            } catch (error) {
+                console.error('Error:', error);
+                return { error: 'An error occurred while communicating with the server.' };
+            }
+        }
+
+        // Function to handle submitting the message
+        async function submitMessage() {
+            const messageInput = document.getElementById('questionInput');
+            const message = messageInput.value.trim(); // Trim whitespace from input
+            if (message !== '') {
+                const response = await invokeChatbot({ input: message });
+                const chatbotResponse = document.getElementById('chatbotResponse');
+                const messageClass = 'message bot'; // Default message class
+                // Check if the response contains an error
+                if (response.error) {
+                    chatbotResponse.innerHTML += `<div class="message">${response.error}</div>`;
+                } else {
+                    // Display the relevant data from the response object
+                    // Modify this part according to the structure of your response object
+                    chatbotResponse.innerHTML += `<div class="${messageClass}">${response.output.answer}</div>`;
+                }
+                // Clear the message input field after sending the message
+                messageInput.value = '';
+                // Scroll to the bottom of the chat interface
+                chatbotResponse.scrollTop = chatbotResponse.scrollHeight;
+            }
+        }
+
+        // Function to toggle the chatbot visibility
+        function toggleChatbotVisibility() {
+            const chatbotContainer = document.getElementById('chatbot-container');
+            if (chatbotContainer.style.display === 'none') {
+                chatbotContainer.style.display = 'block';
+            } else {
+                chatbotContainer.style.display = 'none';
+            }
+        }
+
+        // Event listener for the chatbot button
+        const openChatbotBtn = document.getElementById('openChatbotBtn');
+        openChatbotBtn.addEventListener('click', toggleChatbotVisibility);
+
+        // Event listener for submitting the message
+        const submitQuestionBtn = document.getElementById('submitQuestionBtn');
+        submitQuestionBtn.addEventListener('click', submitMessage);
+    </script>
+
+    <!-- Script to interact with the chatbot server -->
+    <script src="http://localhost:8000/script-tag"></script> <!-- Updated script source -->
+</body>
+</html>
